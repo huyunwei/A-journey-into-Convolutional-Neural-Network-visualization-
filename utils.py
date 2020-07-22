@@ -42,6 +42,7 @@ def subplot(images, parse=lambda x: x, rows_titles=None, cols_titles=None, title
 
 def module2traced(module, inputs):
     handles, modules = [], []
+    module_name = module.__class__.__name__
 
     def trace(module, inputs, outputs):
         modules.append(module)
@@ -49,7 +50,12 @@ def module2traced(module, inputs):
     def traverse(module):
         for m in module.children():
             traverse(m)  # recursion is love
-        is_leaf = len(list(module.children())) == 0
+        is_leaf = False
+        if module_name == "EfficientNet":
+            is_leaf = len(list(module.children())) == 0 \
+                or len(list(module.children())) == 1
+        else:
+            is_leaf = len(list(module.children())) == 0
         if is_leaf: handles.append(module.register_forward_hook(trace))
 
     traverse(module)
